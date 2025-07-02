@@ -3,8 +3,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 
 interface User {
+  id: string
   email: string
-  role: 'admin' | 'user'
+  role: 'admin' | 'company' | 'student'
   name: string
 }
 
@@ -13,53 +14,68 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
   isAuthenticated: boolean
+  token: string | null
+  loading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Admin credentials
-const ADMIN_CREDENTIALS = {
-  email: 'jobadmin@taiyari24.com',
-  password: 'job1234',
-  name: 'Taiyari24 Admin',
-  role: 'admin' as const
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [token, setToken] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Check if user is already logged in (from localStorage)
     const savedUser = localStorage.getItem('taiyari24_user')
-    if (savedUser) {
+    const savedToken = localStorage.getItem('taiyari24_token')
+    
+    if (savedUser && savedToken) {
       setUser(JSON.parse(savedUser))
+      setToken(savedToken)
     }
+    setLoading(false)
   }, [])
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Check admin credentials
-    if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-      const userData = {
-        email: ADMIN_CREDENTIALS.email,
-        role: ADMIN_CREDENTIALS.role,
-        name: ADMIN_CREDENTIALS.name
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setUser(data.user)
+        setToken(data.token)
+        localStorage.setItem('taiyari24_user', JSON.stringify(data.user))
+        localStorage.setItem('taiyari24_token', data.token)
+        return true
+      } else {
+        console.error('Login failed:', data.error)
+        return false
       }
-      setUser(userData)
-      localStorage.setItem('taiyari24_user', JSON.stringify(userData))
-      return true
+    } catch (error) {
+      console.error('Login error:', error)
+      return false
     }
-    return false
   }
 
   const logout = () => {
     setUser(null)
+    setToken(null)
     localStorage.removeItem('taiyari24_user')
+    localStorage.removeItem('taiyari24_token')
   }
 
-  const isAuthenticated = user !== null && user.role === 'admin'
+  const isAuthenticated = user !== null && token !== null
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated, token, loading }}>
       {children}
     </AuthContext.Provider>
   )

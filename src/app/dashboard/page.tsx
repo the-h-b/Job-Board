@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/DashboardLayout'
+import { dashboardApi } from '@/lib/api'
 import { 
   Users, 
   Building2, 
@@ -12,75 +14,21 @@ import {
   AlertCircle
 } from 'lucide-react'
 
-const stats = [
-  {
-    name: 'Total Students',
-    value: '2,847',
-    change: '+12%',
-    changeType: 'increase',
-    icon: GraduationCap,
-    color: 'bg-blue-500'
-  },
-  {
-    name: 'Active Companies',
-    value: '156',
-    change: '+8%',
-    changeType: 'increase',
-    icon: Building2,
-    color: 'bg-green-500'
-  },
-  {
-    name: 'Job Postings',
-    value: '324',
-    change: '+15%',
-    changeType: 'increase',
-    icon: Briefcase,
-    color: 'bg-purple-500'
-  },
-  {
-    name: 'Applications',
-    value: '1,923',
-    change: '+20%',
-    changeType: 'increase',
-    icon: Users,
-    color: 'bg-orange-500'
-  }
-]
+interface DashboardStats {
+  totalStudents: { count: number; growth: number }
+  activeCompanies: { count: number; growth: number }
+  totalJobs: { count: number; growth: number }
+  totalApplications: { count: number; growth: number }
+}
 
-const recentActivities = [
-  {
-    id: 1,
-    action: 'New company registered',
-    company: 'TechCorp Solutions',
-    time: '2 hours ago',
-    icon: Building2,
-    color: 'text-green-600'
-  },
-  {
-    id: 2,
-    action: 'Job posting created',
-    company: 'Innovation Labs',
-    time: '4 hours ago',
-    icon: Briefcase,
-    color: 'text-blue-600'
-  },
-  {
-    id: 3,
-    action: 'Student registered',
-    company: 'John Doe - Computer Science',
-    time: '6 hours ago',
-    icon: GraduationCap,
-    color: 'text-purple-600'
-  },
-  {
-    id: 4,
-    action: 'Application submitted',
-    company: 'Software Engineer at DevCorp',
-    time: '8 hours ago',
-    icon: CheckCircle,
-    color: 'text-orange-600'
-  }
-]
+interface Activity {
+  id: string
+  action: string
+  company: string
+  time: string
+  icon: string
+  color: string
+}
 
 const quickActions = [
   {
@@ -114,6 +62,98 @@ const quickActions = [
 ]
 
 export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true)
+      const [statsResponse, activitiesResponse] = await Promise.all([
+        dashboardApi.getStats(),
+        dashboardApi.getActivities()
+      ])
+      
+      setStats(statsResponse.stats)
+      setActivities(activitiesResponse.activities)
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch dashboard data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getIconComponent = (iconName: string) => {
+    const icons: Record<string, any> = {
+      Building2,
+      Briefcase,
+      GraduationCap,
+      CheckCircle,
+      Users
+    }
+    return icons[iconName] || Users
+  }
+
+  const statsConfig = [
+    {
+      key: 'totalStudents',
+      name: 'Total Students',
+      icon: GraduationCap,
+      color: 'bg-blue-500'
+    },
+    {
+      key: 'activeCompanies',
+      name: 'Active Companies',
+      icon: Building2,
+      color: 'bg-green-500'
+    },
+    {
+      key: 'totalJobs',
+      name: 'Job Postings',
+      icon: Briefcase,
+      color: 'bg-purple-500'
+    },
+    {
+      key: 'totalApplications',
+      name: 'Applications',
+      icon: Users,
+      color: 'bg-orange-500'
+    }
+  ]
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading dashboard</h3>
+          <p className="mt-1 text-sm text-gray-500">{error}</p>
+          <button
+            onClick={fetchDashboardData}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -125,37 +165,40 @@ export default function DashboardPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((item) => (
-            <div
-              key={item.name}
-              className="bg-white overflow-hidden shadow rounded-lg"
-            >
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className={`${item.color} p-3 rounded-lg`}>
-                      <item.icon className="h-6 w-6 text-white" />
+          {statsConfig.map((config) => {
+            const statData = stats?.[config.key as keyof DashboardStats]
+            return (
+              <div
+                key={config.name}
+                className="bg-white overflow-hidden shadow rounded-lg"
+              >
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className={`${config.color} p-3 rounded-lg`}>
+                        <config.icon className="h-6 w-6 text-white" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        {item.name}
-                      </dt>
-                      <dd className="flex items-baseline">
-                        <div className="text-2xl font-semibold text-gray-900">
-                          {item.value}
-                        </div>
-                        <div className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                          {item.change}
-                        </div>
-                      </dd>
-                    </dl>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray-500 truncate">
+                          {config.name}
+                        </dt>
+                        <dd className="flex items-baseline">
+                          <div className="text-2xl font-semibold text-gray-900">
+                            {statData?.count || 0}
+                          </div>
+                          <div className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                            +{statData?.growth || 0}%
+                          </div>
+                        </dd>
+                      </dl>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -165,42 +208,49 @@ export default function DashboardPage() {
               <h3 className="text-lg font-medium text-gray-900">Recent Activities</h3>
             </div>
             <div className="p-6">
-              <div className="flow-root">
-                <ul className="-mb-8">
-                  {recentActivities.map((activity, activityIdx) => (
-                    <li key={activity.id}>
-                      <div className="relative pb-8">
-                        {activityIdx !== recentActivities.length - 1 ? (
-                          <span
-                            className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                            aria-hidden="true"
-                          />
-                        ) : null}
-                        <div className="relative flex space-x-3">
-                          <div>
-                            <span className={`${activity.color} bg-gray-100 h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white`}>
-                              <activity.icon className="h-4 w-4" />
-                            </span>
-                          </div>
-                          <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                            <div>
-                              <p className="text-sm text-gray-900">
-                                {activity.action}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {activity.company}
-                              </p>
+              {activities.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No recent activities</p>
+              ) : (
+                <div className="flow-root">
+                  <ul className="-mb-8">
+                    {activities.map((activity, activityIdx) => {
+                      const IconComponent = getIconComponent(activity.icon)
+                      return (
+                        <li key={activity.id}>
+                          <div className="relative pb-8">
+                            {activityIdx !== activities.length - 1 ? (
+                              <span
+                                className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                                aria-hidden="true"
+                              />
+                            ) : null}
+                            <div className="relative flex space-x-3">
+                              <div>
+                                <span className={`${activity.color} bg-gray-100 h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white`}>
+                                  <IconComponent className="h-4 w-4" />
+                                </span>
+                              </div>
+                              <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                <div>
+                                  <p className="text-sm text-gray-900">
+                                    {activity.action}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    {activity.company}
+                                  </p>
+                                </div>
+                                <div className="text-right text-sm whitespace-nowrap text-gray-500">
+                                  <time>{activity.time}</time>
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                              <time>{activity.time}</time>
-                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 
