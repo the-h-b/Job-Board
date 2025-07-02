@@ -194,13 +194,13 @@ export default function BulkUploadPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Data Type</label>
             <div className="flex space-x-4">
               {[
-                { value: 'students', label: 'Students', icon: Users },
-                { value: 'companies', label: 'Companies', icon: Building2 },
-                { value: 'jobs', label: 'Jobs', icon: Briefcase }
+                { value: 'students' as const, label: 'Students', icon: Users },
+                { value: 'companies' as const, label: 'Companies', icon: Building2 },
+                { value: 'jobs' as const, label: 'Jobs', icon: Briefcase }
               ].map(({ value, label, icon: Icon }) => (
                 <button
                   key={value}
-                  onClick={() => setSelectedType(value as any)}
+                  onClick={() => setSelectedType(value)}
                   className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
                     selectedType === value
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -380,7 +380,7 @@ export default function BulkUploadPage() {
             <li>• Use the provided templates to ensure proper formatting</li>
             <li>• Duplicate entries will be automatically skipped</li>
             <li>• Large files may take several minutes to process</li>
-            <li>• You'll receive a notification when processing is complete</li>
+            <li>• You&apos;ll receive a notification when processing is complete</li>
           </ul>
         </div>
       </div>

@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { 
   GraduationCap, 
   Search, 
-  Filter, 
   Mail, 
   Phone, 
   MapPin,
@@ -20,7 +19,25 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const studentsData = [
+interface Student {
+  id: number
+  name: string
+  email: string
+  phone: string
+  location: string
+  college: string
+  course: string
+  year: string
+  cgpa: string
+  skills: string[]
+  experience: string
+  appliedJobs: number
+  status: string
+  registrationDate: string
+  lastLogin: string
+}
+
+const studentsData: Student[] = [
   {
     id: 1,
     name: 'Rahul Sharma',
@@ -147,7 +164,7 @@ export default function StudentsPage() {
     }
   }
 
-  const handleDownloadProfile = (student: any) => {
+  const handleDownloadProfile = (student: Student) => {
     toast.success(`Downloading ${student.name}'s profile...`)
     // Here you would implement the actual download logic
   }

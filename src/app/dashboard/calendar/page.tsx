@@ -284,12 +284,14 @@ export default function CalendarPage() {
                           <button 
                             onClick={() => handleEditEvent(event)}
                             className="text-blue-600 hover:text-blue-900"
+                            title="Edit Event"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button 
                             onClick={() => handleDeleteEvent(event.id)}
                             className="text-red-600 hover:text-red-900"
+                            title="Delete Event"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -380,6 +382,8 @@ export default function CalendarPage() {
                     required
                     value={eventForm.title}
                     onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter event title"
+                    title="Event Title"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -392,6 +396,8 @@ export default function CalendarPage() {
                       required
                       value={eventForm.date}
                       onChange={(e) => setEventForm(prev => ({ ...prev, date: e.target.value }))}
+                      placeholder="Select date"
+                      title="Event Date"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -409,8 +415,9 @@ export default function CalendarPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <label htmlFor="event-type" className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                   <select
+                    id="event-type"
                     value={eventForm.type}
                     onChange={(e) => setEventForm(prev => ({ ...prev, type: e.target.value as Event['type'] }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -428,6 +435,7 @@ export default function CalendarPage() {
                     type="text"
                     value={eventForm.location}
                     onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
+                    placeholder="Enter location"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -438,6 +446,7 @@ export default function CalendarPage() {
                     type="text"
                     value={eventForm.company}
                     onChange={(e) => setEventForm(prev => ({ ...prev, company: e.target.value }))}
+                    placeholder="Enter company"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -448,6 +457,8 @@ export default function CalendarPage() {
                     rows={3}
                     value={eventForm.description}
                     onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Enter event description"
+                    title="Event Description"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>

@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { 
   Bell, 
   Search, 
-  Filter, 
   Trash2, 
   Eye, 
   EyeOff,

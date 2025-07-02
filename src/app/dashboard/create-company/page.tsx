@@ -2,14 +2,13 @@
 
 import DashboardLayout from '@/components/DashboardLayout'
 import { useState } from 'react'
+import Image from 'next/image'
 import { 
   Building2, 
   Globe, 
   Mail, 
   Phone, 
   MapPin, 
-  Users, 
-  Upload,
   X,
   Plus
 } from 'lucide-react'
@@ -50,7 +49,7 @@ export default function CreateCompanyPage() {
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof typeof prev],
+          ...(prev[parent as keyof typeof prev] as Record<string, string>),
           [child]: value
         }
       }))
@@ -441,9 +440,11 @@ export default function CreateCompanyPage() {
             <div className="flex items-center space-x-6">
               <div className="flex-shrink-0">
                 {logoPreview ? (
-                  <img
+                  <Image
                     src={logoPreview}
                     alt="Company logo preview"
+                    width={80}
+                    height={80}
                     className="h-20 w-20 object-cover rounded-lg border border-gray-300"
                   />
                 ) : (

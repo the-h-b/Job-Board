@@ -2,18 +2,17 @@
 
 import DashboardLayout from '@/components/DashboardLayout'
 import { useState } from 'react'
+import Image from 'next/image'
 import { 
   Settings, 
   User, 
   Lock, 
   Bell, 
-  Globe, 
   Database, 
   Shield,
   Eye,
   EyeOff,
   Save,
-  Upload,
   Mail,
   Smartphone
 } from 'lucide-react'
@@ -182,9 +181,11 @@ export default function SettingsPage() {
                   <div className="flex items-center space-x-6 mb-6">
                     <div className="flex-shrink-0">
                       {profileData.avatar ? (
-                        <img
+                        <Image
                           src={profileData.avatar}
                           alt="Avatar"
+                          width={80}
+                          height={80}
                           className="h-20 w-20 object-cover rounded-full border border-gray-300"
                         />
                       ) : (

@@ -5,8 +5,6 @@ import { useState } from 'react'
 import { 
   Users, 
   Search, 
-  Filter, 
-  MoreVertical, 
   Edit, 
   Trash2, 
   UserCheck, 
