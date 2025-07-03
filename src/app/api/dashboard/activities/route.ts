@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
 import Company from '@/models/Company'
@@ -6,7 +6,7 @@ import Job from '@/models/Job'
 import Student from '@/models/Student'
 import Application from '@/models/Application'
 
-export const GET = requireAuth(['admin'])(async (request: NextRequest) => {
+export const GET = requireAuth(['admin'])(async () => {
   try {
     await dbConnect()
 
@@ -43,7 +43,16 @@ export const GET = requireAuth(['admin'])(async (request: NextRequest) => {
     ])
 
     // Format activities
-    const activities = []
+    const activities: Array<{
+      id: string
+      type: string
+      action: string
+      company: string
+      description?: string
+      time: Date
+      icon: string
+      color: string
+    }> = []
 
     // Add company registrations
     recentCompanies.forEach(company => {

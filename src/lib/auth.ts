@@ -7,15 +7,23 @@ export interface AuthenticatedUser {
   role: 'admin' | 'company' | 'student'
 }
 
+interface JwtPayload {
+  userId: string
+  email: string
+  role: 'admin' | 'company' | 'student'
+  iat?: number
+  exp?: number
+}
+
 export function verifyToken(token: string): AuthenticatedUser | null {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload
     return {
       userId: decoded.userId,
       email: decoded.email,
       role: decoded.role
     }
-  } catch (error) {
+  } catch {
     return null
   }
 }

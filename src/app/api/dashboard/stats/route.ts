@@ -1,13 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
-import User from '@/models/User'
 import Company from '@/models/Company'
 import Job from '@/models/Job'
 import Student from '@/models/Student'
 import Application from '@/models/Application'
 
-export const GET = requireAuth(['admin'])(async (request: NextRequest) => {
+export const GET = requireAuth(['admin'])(async () => {
   try {
     await dbConnect()
 

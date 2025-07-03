@@ -15,7 +15,7 @@ export const GET = requireAuth(['admin'])(async (request: NextRequest) => {
     const location = searchParams.get('location') || ''
 
     // Build query
-    const query: any = { isActive: true }
+    const query: Record<string, unknown> = { isActive: true }
     
     if (search) {
       query.$or = [
@@ -109,8 +109,9 @@ export const POST = requireAuth(['admin'])(async (request: NextRequest, user) =>
     console.error('Create company error:', error)
     
     // Handle mongoose validation errors
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err: any) => err.message)
+    if (error instanceof Error && 'name' in error && error.name === 'ValidationError') {
+      const validationError = error as unknown as { errors: Record<string, { message: string }> }
+      const errors = Object.values(validationError.errors).map((err) => err.message)
       return NextResponse.json(
         { error: errors.join(', ') },
         { status: 400 }

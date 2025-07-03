@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
   LayoutDashboard, 
-  Users, 
   Building2, 
   GraduationCap, 
   Calendar, 
@@ -25,7 +24,6 @@ import { cn } from '@/lib/utils'
 const navigationItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Job Upload', href: '/dashboard/job-upload', icon: Upload },
-  { name: 'Users', href: '/dashboard/users', icon: Users },
   { name: 'Companies', href: '/dashboard/companies', icon: Building2 },
   { name: 'Students', href: '/dashboard/students', icon: GraduationCap },
   { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },

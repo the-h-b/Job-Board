@@ -30,6 +30,14 @@ interface Activity {
   color: string
 }
 
+interface StatsResponse {
+  stats: DashboardStats
+}
+
+interface ActivitiesResponse {
+  activities: Activity[]
+}
+
 const quickActions = [
   {
     title: 'Create Job Posting',
@@ -79,17 +87,18 @@ export default function DashboardPage() {
         dashboardApi.getActivities()
       ])
       
-      setStats(statsResponse.stats)
-      setActivities(activitiesResponse.activities)
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch dashboard data')
+      setStats((statsResponse as StatsResponse).stats)
+      setActivities((activitiesResponse as ActivitiesResponse).activities)
+    } catch (err: unknown) {
+      const error = err as Error
+      setError(error.message || 'Failed to fetch dashboard data')
     } finally {
       setLoading(false)
     }
   }
 
   const getIconComponent = (iconName: string) => {
-    const icons: Record<string, any> = {
+    const icons: Record<string, React.ComponentType<{ className?: string }>> = {
       Building2,
       Briefcase,
       GraduationCap,
@@ -284,21 +293,36 @@ export default function DashboardPage() {
         {/* System Status */}
         <div className="bg-white shadow rounded-lg">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">System Status</h3>
+            <h3 className="text-lg font-medium text-gray-900">System Overview</h3>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                <span className="text-sm text-gray-900">Database: Online</span>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+              <div className="text-center">
+                <dt className="text-sm font-medium text-gray-500">Total Records</dt>
+                <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                  {(stats?.totalStudents.count || 0) + 
+                   (stats?.activeCompanies.count || 0) + 
+                   (stats?.totalJobs.count || 0) + 
+                   (stats?.totalApplications.count || 0)}
+                </dd>
               </div>
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                <span className="text-sm text-gray-900">Email Service: Active</span>
+              <div className="text-center">
+                <dt className="text-sm font-medium text-gray-500">Active Jobs</dt>
+                <dd className="mt-1 text-3xl font-semibold text-blue-600">
+                  {stats?.totalJobs.count || 0}
+                </dd>
               </div>
-              <div className="flex items-center">
-                <AlertCircle className="h-5 w-5 text-yellow-500 mr-2" />
-                <span className="text-sm text-gray-900">Storage: 78% Used</span>
+              <div className="text-center">
+                <dt className="text-sm font-medium text-gray-500">Active Companies</dt>
+                <dd className="mt-1 text-3xl font-semibold text-green-600">
+                  {stats?.activeCompanies.count || 0}
+                </dd>
+              </div>
+              <div className="text-center">
+                <dt className="text-sm font-medium text-gray-500">Registered Students</dt>
+                <dd className="mt-1 text-3xl font-semibold text-purple-600">
+                  {stats?.totalStudents.count || 0}
+                </dd>
               </div>
             </div>
           </div>

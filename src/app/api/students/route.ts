@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
 import Student from '@/models/Student'
+import Application from '@/models/Application'
 
 export const GET = requireAuth(['admin'])(async (request: NextRequest) => {
   try {
@@ -15,7 +16,7 @@ export const GET = requireAuth(['admin'])(async (request: NextRequest) => {
     const graduationYear = searchParams.get('graduationYear') || ''
 
     // Build query
-    const query: any = { isActive: true }
+    const query: Record<string, unknown> = { isActive: true }
     
     if (search) {
       query.$or = [
@@ -44,13 +45,37 @@ export const GET = requireAuth(['admin'])(async (request: NextRequest) => {
       .skip((page - 1) * limit)
       .limit(limit)
 
+    // Get application counts for each student
+    const studentsWithApplications = await Promise.all(
+      students.map(async (student) => {
+        const applicationCount = await Application.countDocuments({ student: student._id })
+        return {
+          ...student.toObject(),
+          applicationCount
+        }
+      })
+    )
+
+    // Get overall statistics
+    const [totalApplications, averageCGPA] = await Promise.all([
+      Application.countDocuments(),
+      Student.aggregate([
+        { $match: { isActive: true, 'academicInfo.cgpa': { $exists: true } } },
+        { $group: { _id: null, avgCGPA: { $avg: '$academicInfo.cgpa' } } }
+      ])
+    ])
+
     return NextResponse.json({
-      students,
+      students: studentsWithApplications,
       pagination: {
         page,
         limit,
         total,
         pages: Math.ceil(total / limit)
+      },
+      stats: {
+        totalApplications,
+        averageCGPA: averageCGPA.length > 0 ? averageCGPA[0].avgCGPA : 0
       }
     })
 
@@ -110,8 +135,9 @@ export const POST = requireAuth(['admin', 'student'])(async (request: NextReques
     console.error('Create student error:', error)
     
     // Handle mongoose validation errors
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err: any) => err.message)
+    if (error instanceof Error && 'name' in error && error.name === 'ValidationError') {
+      const validationError = error as unknown as { errors: Record<string, { message: string }> }
+      const errors = Object.values(validationError.errors).map((err) => err.message)
       return NextResponse.json(
         { error: errors.join(', ') },
         { status: 400 }
