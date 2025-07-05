@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
 import Company from '@/models/Company'
-import User from '@/models/User'
+import '@/models/User' // Import for schema registration
 
 export const GET = requireAuth(['admin', 'company'])(async (request: NextRequest) => {
   try {

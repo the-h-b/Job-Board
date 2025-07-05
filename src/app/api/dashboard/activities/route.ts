@@ -5,7 +5,7 @@ import Company from '@/models/Company'
 import Job from '@/models/Job'
 import Student from '@/models/Student'
 import Application from '@/models/Application'
-import User from '@/models/User'
+import '@/models/User' // Import for schema registration
 
 export const GET = requireAuth(['admin'])(async () => {
   try {

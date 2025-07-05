@@ -3,7 +3,7 @@ import dbConnect from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
 import Student from '@/models/Student'
 import Application from '@/models/Application'
-import User from '@/models/User'
+import '@/models/User' // Import for schema registration
 
 
 export const GET = requireAuth(['admin'])(async (request: NextRequest) => {

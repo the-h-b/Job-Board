@@ -168,7 +168,7 @@ export async function apiRequest<T = unknown>(
 
   const response = await fetch(`/api${endpoint}`, config)
   
-  let data: any
+  let data: unknown
   try {
     data = await response.json()
   } catch (jsonError) {
@@ -178,7 +178,8 @@ export async function apiRequest<T = unknown>(
 
   if (!response.ok) {
     // Enhanced error information
-    const errorMessage = data.error || `HTTP ${response.status}: ${response.statusText}`
+    const errorObj = data as { error?: string }
+    const errorMessage = errorObj.error || `HTTP ${response.status}: ${response.statusText}`
     const errorDetails = {
       endpoint,
       status: response.status,
