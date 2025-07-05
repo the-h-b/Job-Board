@@ -16,7 +16,9 @@ import {
   Download,
   FileText,
   AlertCircle,
-  Loader
+  Loader,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { studentsApi } from '@/lib/api'
@@ -148,6 +150,14 @@ export default function StudentsPage() {
 
   const getAverageCGPA = () => {
     return stats.averageCGPA.toFixed(1)
+  }
+
+  const handlePreviousPage = () => {
+    setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))
+  }
+
+  const handleNextPage = () => {
+    setPagination(prev => ({ ...prev, page: Math.min(prev.pages, prev.page + 1) }))
   }
 
   return (
@@ -445,6 +455,28 @@ export default function StudentsPage() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {!loading && !error && students.length > 0 && (
+          <div className="flex justify-between items-center bg-white shadow rounded-lg p-4">
+            <button
+              onClick={handlePreviousPage}
+              disabled={pagination.page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            >
+              <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+            </button>
+            <span className="text-sm text-gray-700">
+              Page {pagination.page} of {pagination.pages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={pagination.page === pagination.pages}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            >
+              Next <ChevronRight className="ml-2 h-4 w-4" />
+            </button>
           </div>
         )}
 
