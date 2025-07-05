@@ -3,7 +3,7 @@ import dbConnect from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
 import Company from '@/models/Company'
 
-export const GET = requireAuth(['admin'])(async (request: NextRequest) => {
+export const GET = requireAuth(['admin', 'company'])(async (request: NextRequest) => {
   try {
     await dbConnect()
 

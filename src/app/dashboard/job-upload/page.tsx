@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { jobsApi, companiesApi } from '@/lib/api'
+import AuthDebugger from '@/components/AuthDebugger'
 
 import { CompanyData, JobData } from '@/lib/api'
 
@@ -231,6 +232,7 @@ export default function JobUploadPage() {
 
   return (
     <DashboardLayout>
+      <AuthDebugger />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">

@@ -170,7 +170,17 @@ export async function apiRequest<T = unknown>(
   const data = await response.json() // This 'data' is now directly T
 
   if (!response.ok) {
-    throw new ApiError(response.status, data.error || 'An error occurred')
+    // Enhanced error information
+    const errorMessage = data.error || 'An error occurred'
+    console.error('API Error:', {
+      endpoint,
+      status: response.status,
+      statusText: response.statusText,
+      error: errorMessage,
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : null
+    })
+    throw new ApiError(response.status, errorMessage)
   }
 
   return data as T // Return data as T
