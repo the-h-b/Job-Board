@@ -49,9 +49,6 @@ const UserSchema = new mongoose.Schema<IUser>({
   timestamps: true
 });
 
-// Create index for email
-UserSchema.index({ email: 1 });
-
 const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 
 async function createAdminUser(): Promise<void> {
