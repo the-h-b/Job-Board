@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 import mongoose from 'mongoose' 
+=======
+import mongoose from 'mongoose'
+import StudentModel from '@/models/Student' 
+import UserModel from '@/models/User' 
+import ApplicationModel from '@/models/Application' 
+>>>>>>> d812608e635416e23ef7d69734ee6dd6ad7fdefb
 
 
 interface MongooseCache {
@@ -40,6 +47,10 @@ async function dbConnect() {
 
     cached!.promise = mongoose.connect(MONGODB_URI, opts)
       .then((m) => {
+<<<<<<< HEAD
+=======
+
+>>>>>>> d812608e635416e23ef7d69734ee6dd6ad7fdefb
         return m
       })
   }
