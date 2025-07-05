@@ -2,11 +2,11 @@
 
 import DashboardLayout from '@/components/DashboardLayout'
 import { useState, useEffect, useCallback } from 'react'
-import { 
-  GraduationCap, 
-  Search, 
-  Mail, 
-  Phone, 
+import {
+  GraduationCap,
+  Search,
+  Mail,
+  Phone,
   Calendar,
   BookOpen,
   Award,
@@ -16,7 +16,9 @@ import {
   Download,
   FileText,
   AlertCircle,
-  Loader
+  Loader,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { studentsApi } from '@/lib/api'
@@ -57,20 +59,6 @@ interface Student {
   applicationCount: number
 }
 
-// interface StudentsApiResponse {
-//   students: Student[]
-//   pagination: {
-//     page: number
-//     limit: number
-//     total: number
-//     pages: number
-//   }
-//   stats: {
-//     totalApplications: number
-//     averageCGPA: number
-//   }
-// }
-
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
@@ -86,7 +74,7 @@ export default function StudentsPage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const params = new URLSearchParams({
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
@@ -94,7 +82,11 @@ export default function StudentsPage() {
         ...(filterCourse !== 'all' && { course: filterCourse }),
         ...(filterYear !== 'all' && { graduationYear: filterYear })
       })
-      
+
+      if (filterStatus !== 'all') {
+        params.append('isActive', (filterStatus === 'active').toString())
+      }
+
       const response = await studentsApi.getAll(params)
       setStudents(response.students || [])
       setPagination(response.pagination || { page: 1, limit: 10, total: 0, pages: 0 })
@@ -106,29 +98,22 @@ export default function StudentsPage() {
     } finally {
       setLoading(false)
     }
-  }, [searchTerm, filterCourse, filterYear, pagination.page, pagination.limit])
+  }, [searchTerm, filterCourse, filterYear, filterStatus, pagination.page, pagination.limit])
 
   useEffect(() => {
     fetchStudents()
   }, [fetchStudents])
 
-  // Get unique courses and years for filters
   const courses = [...new Set(students.map(student => student.academicInfo.course))]
   const years = [...new Set(students.map(student => student.academicInfo.graduationYear))]
-
-  // Filter students (client-side filtering on current page)
-  const filteredStudents = students.filter(student => {
-    if (filterStatus === 'all') return true
-    return filterStatus === 'active' ? student.isActive : !student.isActive
-  })
 
   const handleStatusToggle = async (studentId: string) => {
     try {
       const student = students.find(s => s._id === studentId)
       if (!student) return
-      
+
       await studentsApi.update(studentId, { isActive: !student.isActive })
-      setStudents(students.map(s => 
+      setStudents(students.map(s =>
         s._id === studentId ? { ...s, isActive: !s.isActive } : s
       ))
       toast.success('Student status updated successfully!')
@@ -139,7 +124,7 @@ export default function StudentsPage() {
 
   const handleDeleteStudent = async (studentId: string) => {
     if (!confirm('Are you sure you want to delete this student?')) return
-    
+
     try {
       await studentsApi.delete(studentId)
       setStudents(students.filter(student => student._id !== studentId))
@@ -152,7 +137,6 @@ export default function StudentsPage() {
   const handleDownloadProfile = (student: Student) => {
     const fullName = `${student.personalInfo.firstName} ${student.personalInfo.lastName}`
     toast.success(`Downloading ${fullName}'s profile...`)
-    // Here you would implement the actual download logic
   }
 
   const getExperienceLevel = (student: Student) => {
@@ -168,10 +152,17 @@ export default function StudentsPage() {
     return stats.averageCGPA.toFixed(1)
   }
 
+  const handlePreviousPage = () => {
+    setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))
+  }
+
+  const handleNextPage = () => {
+    setPagination(prev => ({ ...prev, page: Math.min(prev.pages, prev.page + 1) }))
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center">
@@ -191,7 +182,6 @@ export default function StudentsPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
@@ -208,7 +198,7 @@ export default function StudentsPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
@@ -264,7 +254,6 @@ export default function StudentsPage() {
           </div>
         </div>
 
-        {/* Filters and Search */}
         <div className="bg-white shadow rounded-lg p-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
             <div className="md:col-span-2">
@@ -279,7 +268,7 @@ export default function StudentsPage() {
                 />
               </div>
             </div>
-            
+
             <div>
               <select
                 value={filterCourse}
@@ -320,7 +309,6 @@ export default function StudentsPage() {
           </div>
         </div>
 
-        {/* Loading State */}
         {loading && (
           <div className="flex justify-center items-center py-12">
             <Loader className="h-8 w-8 animate-spin text-blue-600" />
@@ -328,7 +316,6 @@ export default function StudentsPage() {
           </div>
         )}
 
-        {/* Error State */}
         {error && (
           <div className="text-center py-12">
             <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
@@ -343,17 +330,15 @@ export default function StudentsPage() {
           </div>
         )}
 
-        {/* Students Grid */}
         {!loading && !error && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {filteredStudents.map((student) => {
+            {students.map((student) => {
               const fullName = `${student.personalInfo.firstName} ${student.personalInfo.lastName}`
               const initials = `${student.personalInfo.firstName[0]}${student.personalInfo.lastName[0]}`
-              
+
               return (
                 <div key={student._id} className="bg-white shadow rounded-lg overflow-hidden">
                   <div className="p-6">
-                    {/* Student Header */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -367,15 +352,14 @@ export default function StudentsPage() {
                         </div>
                       </div>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        student.isActive 
-                          ? 'bg-green-100 text-green-800' 
+                        student.isActive
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
                         {student.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </div>
 
-                    {/* Student Details */}
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-600">
                         <Mail className="mr-2 h-4 w-4" />
@@ -402,7 +386,6 @@ export default function StudentsPage() {
                       </div>
                     </div>
 
-                    {/* Skills */}
                     {student.skills.length > 0 && (
                       <div className="mb-4">
                         <h4 className="text-sm font-medium text-gray-900 mb-2">Skills</h4>
@@ -422,10 +405,9 @@ export default function StudentsPage() {
                       </div>
                     )}
 
-                    {/* Stats */}
                     <div className="grid grid-cols-2 gap-4 mb-4 pt-4 border-t border-gray-200">
                       <div className="text-center">
-                        <div className="text-xl font-semibold text-gray-900">{getTotalApplications()}</div>
+                        <div className="text-xl font-semibold text-gray-900">{student.applicationCount || 0}</div>
                         <div className="text-xs text-gray-500">Applications</div>
                       </div>
                       <div className="text-center">
@@ -434,10 +416,9 @@ export default function StudentsPage() {
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                       <div className="flex space-x-2">
-                        <button 
+                        <button
                           onClick={() => handleDownloadProfile(student)}
                           className="text-green-600 hover:text-green-900 p-1"
                           title="Download Profile"
@@ -450,7 +431,7 @@ export default function StudentsPage() {
                         <button className="text-indigo-600 hover:text-indigo-900 p-1" title="Edit">
                           <Edit className="h-4 w-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteStudent(student._id)}
                           className="text-red-600 hover:text-red-900 p-1"
                           title="Delete"
@@ -458,8 +439,8 @@ export default function StudentsPage() {
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                      
-                      <button 
+
+                      <button
                         onClick={() => handleStatusToggle(student._id)}
                         className={`px-3 py-1 text-xs font-medium rounded ${
                           student.isActive
@@ -477,8 +458,29 @@ export default function StudentsPage() {
           </div>
         )}
 
-        {/* Empty State */}
-        {filteredStudents.length === 0 && (
+        {!loading && !error && students.length > 0 && (
+          <div className="flex justify-between items-center bg-white shadow rounded-lg p-4">
+            <button
+              onClick={handlePreviousPage}
+              disabled={pagination.page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            >
+              <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+            </button>
+            <span className="text-sm text-gray-700">
+              Page {pagination.page} of {pagination.pages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={pagination.page === pagination.pages}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            >
+              Next <ChevronRight className="ml-2 h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {students.length === 0 && !loading && !error && (
           <div className="text-center py-12">
             <GraduationCap className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No students found</h3>

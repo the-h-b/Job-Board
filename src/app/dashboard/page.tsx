@@ -23,20 +23,16 @@ interface DashboardStats {
 
 interface Activity {
   id: string
+  type: string
   action: string
   company: string
+  description?: string
   time: string
   icon: string
   color: string
 }
 
-interface StatsResponse {
-  stats: DashboardStats
-}
 
-interface ActivitiesResponse {
-  activities: Activity[]
-}
 
 const quickActions = [
   {
@@ -87,8 +83,8 @@ export default function DashboardPage() {
         dashboardApi.getActivities()
       ])
       
-      setStats((statsResponse as StatsResponse).stats)
-      setActivities((activitiesResponse as ActivitiesResponse).activities)
+      setStats(statsResponse)
+      setActivities(activitiesResponse)
     } catch (err: unknown) {
       const error = err as Error
       setError(error.message || 'Failed to fetch dashboard data')

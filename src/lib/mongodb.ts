@@ -1,4 +1,5 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose' 
+
 
 interface MongooseCache {
   conn: typeof mongoose | null
@@ -9,12 +10,12 @@ declare global {
   var mongoose: MongooseCache | undefined
 }
 
-const MONGODB_URI = process.env.MONGODB_URI!
+const MONGODB_URI = process.env.MONGODB_URI
 
 if (!MONGODB_URI) {
-  throw new Error(
-    'Please define the MONGODB_URI environment variable inside .env.local'
-  )
+  console.warn('MONGODB_URI is not defined. Database operations will fail.')
+  // During build time, we might not have a database connection
+  // This prevents the build from failing due to missing env vars
 }
 
 let cached = global.mongoose
@@ -24,6 +25,10 @@ if (!cached) {
 }
 
 async function dbConnect() {
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is not defined. Please check your environment variables.')
+  }
+
   if (cached?.conn) {
     return cached.conn
   }
@@ -32,7 +37,11 @@ async function dbConnect() {
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
     }
-    cached!.promise = mongoose.connect(MONGODB_URI, opts);
+
+    cached!.promise = mongoose.connect(MONGODB_URI, opts)
+      .then((m) => {
+        return m
+      })
   }
 
   try {
