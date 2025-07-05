@@ -1,9 +1,12 @@
+import { Url } from "url";
+
 // API types
-export interface ApiResponse<T = unknown> {
-  data?: T
-  message?: string
-  error?: string
-}
+// Removed ApiResponse interface as apiRequest will now directly return T
+// export interface ApiResponse<T = unknown> {
+//   data?: T
+//   message?: string
+//   error?: string
+// }
 
 export interface DashboardStats {
   totalJobs: number
@@ -147,11 +150,11 @@ export class ApiError extends Error {
 }
 
 export async function apiRequest<T = unknown>(
-  endpoint: string, 
+  endpoint: string,
   options: RequestInit = {}
-): Promise<ApiResponse<T>> {
+): Promise<T> {
   const token = localStorage.getItem('taiyari24_token')
-  
+
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
@@ -162,13 +165,13 @@ export async function apiRequest<T = unknown>(
   }
 
   const response = await fetch(`/api${endpoint}`, config)
-  const data = await response.json()
+  const data = await response.json() // This 'data' is now directly T
 
   if (!response.ok) {
     throw new ApiError(response.status, data.error || 'An error occurred')
   }
 
-  return data
+  return data as T // Return data as T
 }
 
 // Dashboard API functions
@@ -181,13 +184,13 @@ export const dashboardApi = {
 export const companiesApi = {
   getAll: async (params?: URLSearchParams): Promise<CompaniesApiResponse> => {
     const response = await apiRequest<CompaniesApiResponse>(`/companies${params ? `?${params}` : ''}`)
-    return response.data as CompaniesApiResponse
+    return response // No .data needed now
   },
-  create: (data: Partial<CompanyData>) => 
+  create: (data: Partial<CompanyData>) =>
     apiRequest('/companies', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: Partial<CompanyData>) => 
+  update: (id: string, data: Partial<CompanyData>) =>
     apiRequest(`/companies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id: string) => 
+  delete: (id: string) =>
     apiRequest(`/companies/${id}`, { method: 'DELETE' }),
 }
 
@@ -195,42 +198,42 @@ export const companiesApi = {
 export const jobsApi = {
   getAll: async (params?: URLSearchParams): Promise<JobsApiResponse> => {
     const response = await apiRequest<JobsApiResponse>(`/jobs${params ? `?${params}` : ''}`)
-    return response.data as JobsApiResponse
+    return response // No .data needed now
   },
-  create: (data: Record<string, unknown>) => 
+  create: (data: Record<string, unknown>) =>
     apiRequest('/jobs', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: Partial<JobData>) => 
+  update: (id: string, data: Partial<JobData>) =>
     apiRequest(`/jobs/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id: string) => 
+  delete: (id: string) =>
     apiRequest(`/jobs/${id}`, { method: 'DELETE' }),
 }
 
-// Students API functions
 export const studentsApi = {
-  getAll: (params?: URLSearchParams): Promise<StudentsApiResponse> => 
-    fetch(`/api/students${params ? `?${params}` : ''}`)
-      .then(response => response.json()),
-  getById: (id: string) => 
+  getAll: async (params?: URLSearchParams): Promise<StudentsApiResponse> => {
+    const response = await apiRequest<StudentsApiResponse>(`/students${params ? `?${params}` : ''}`);
+    return response; // No .data needed now
+  },
+  getById: (id: string) =>
     apiRequest(`/students/${id}`),
-  getApplications: (id: string) => 
+  getApplications: (id: string) =>
     apiRequest(`/students/${id}/applications`),
-  create: (data: StudentData) => 
+  create: (data: StudentData) =>
     apiRequest('/students', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: Partial<StudentData>) => 
+  update: (id: string, data: Partial<StudentData>) =>
     apiRequest(`/students/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id: string) => 
+  delete: (id: string) =>
     apiRequest(`/students/${id}`, { method: 'DELETE' }),
 }
 
 // Applications API functions
 export const applicationsApi = {
-  getAll: (params?: URLSearchParams) => 
+  getAll: (params?: URLSearchParams) =>
     apiRequest(`/applications${params ? `?${params}` : ''}`),
-  create: (data: ApplicationData) => 
+  create: (data: ApplicationData) =>
     apiRequest('/applications', { method: 'POST', body: JSON.stringify(data) }),
-  updateStatus: (id: string, status: string) => 
-    apiRequest(`/applications/${id}/status`, { 
-      method: 'PUT', 
-      body: JSON.stringify({ status }) 
+  updateStatus: (id: string, status: string) =>
+    apiRequest(`/applications/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
     }),
 }

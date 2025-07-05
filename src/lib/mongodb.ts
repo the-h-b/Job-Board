@@ -1,4 +1,8 @@
 import mongoose from 'mongoose'
+import StudentModel from '@/models/Student' 
+import UserModel from '@/models/User' 
+import ApplicationModel from '@/models/Application' 
+
 
 interface MongooseCache {
   conn: typeof mongoose | null
@@ -32,7 +36,12 @@ async function dbConnect() {
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
     }
-    cached!.promise = mongoose.connect(MONGODB_URI, opts);
+
+    cached!.promise = mongoose.connect(MONGODB_URI, opts)
+      .then((m) => {
+
+        return m
+      })
   }
 
   try {
