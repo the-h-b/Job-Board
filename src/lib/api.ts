@@ -167,19 +167,28 @@ export async function apiRequest<T = unknown>(
   }
 
   const response = await fetch(`/api${endpoint}`, config)
-  const data = await response.json() // This 'data' is now directly T
+  
+  let data: any
+  try {
+    data = await response.json()
+  } catch (jsonError) {
+    console.error('Failed to parse JSON response:', jsonError)
+    data = {}
+  }
 
   if (!response.ok) {
     // Enhanced error information
-    const errorMessage = data.error || 'An error occurred'
-    console.error('API Error:', {
+    const errorMessage = data.error || `HTTP ${response.status}: ${response.statusText}`
+    const errorDetails = {
       endpoint,
       status: response.status,
       statusText: response.statusText,
       error: errorMessage,
       hasToken: !!token,
-      tokenPreview: token ? `${token.substring(0, 20)}...` : null
-    })
+      tokenPreview: token ? `${token.substring(0, 20)}...` : null,
+      responseData: data
+    }
+    console.error('API Error:', errorDetails)
     throw new ApiError(response.status, errorMessage)
   }
 

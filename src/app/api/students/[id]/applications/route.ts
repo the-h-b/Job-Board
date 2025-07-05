@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
 import Application from '@/models/Application'
+import Job from '@/models/Job'
+import Company from '@/models/Company'
+import User from '@/models/User'
 
 export const GET = requireAuth(['admin'])(async (request: NextRequest) => {
   try {
